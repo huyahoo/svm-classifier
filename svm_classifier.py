@@ -1,5 +1,8 @@
 """_summary_: This script is used to classify the dataset by SVM.
-Author: Quang Huy Phung, Dinh Minh Nguyen, Luong Phuong Truc Huynh
+Author: 
+- Quang Huy Phung
+- Dinh Minh Nguyen 
+- Luong Phuong Truc Huynh
 Date: 2024-04-13
 """
 
