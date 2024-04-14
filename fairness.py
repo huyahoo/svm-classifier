@@ -211,7 +211,7 @@ if __name__ == "__main__":
     parser = ArgumentParser(description='Fairness evaluation')
     parser.add_argument(
         '--feature', type=str, default='Ethnicity',
-        help='named feature (column name) for which fairness will be evaluated')
+        help='named feature (column name) for which fairness will be evaluated. (Options: "Gender", "Age", "Debt", "Married", "BankCustomer", "Industry", "Ethnicity", "YearsEmployed", "PriorDefault", "Employed", "CreditScore", "DriversLicense", "Citizen", "Income")')
     
     args = parser.parse_args()
     col = args.feature

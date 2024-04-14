@@ -94,8 +94,17 @@ python3 preprocess.py --data './data/raw_credit_card_approvals.csv' --output './
 
 This Python script provides a set of functions to evaluate the fairness of a machine learning model's predictions. It uses various statistical tests and metrics to assess the model's performance across different groups defined by a categorical feature.
 
+### Arguments
+
+- `--feature`: Named feature (column name) for which fairness will be evaluated. (Options: "Gender", "Age", "Debt", "Married", "BankCustomer", "Industry", "Ethnicity", "YearsEmployed", "PriorDefault", "Employed", "CreditScore", "DriversLicense", "Citizen", "Income"). Default is 'Ethnicity'.
+
 ### Usage
 
+```bash
+python3 fairness.py --feature <feature>
+```
+
+### Example
 ```bash
 python3 fairness.py --feature Ethnicity
 ```
