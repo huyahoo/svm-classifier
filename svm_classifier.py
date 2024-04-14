@@ -95,9 +95,9 @@ class SVMClassifier:
             GridSearchCV: The GridSearchCV object after fitting. This object can be used to access the best parameters found.
         """
         param_grid = {
-            'C': np.linspace(2 ** -5, 2 ** 11, 2),
+            'C': np.linspace(2 ** -5, 2 ** 11, 32),
             'kernel': ['rbf'],
-            'gamma': np.linspace(2 ** -15, 2 ** -5, 2)
+            'gamma': np.linspace(2 ** -15, 2 ** -5, 32)
         }
         model_clf = svm.SVC()
         grid = GridSearchCV(model_clf, param_grid, refit = True, verbose = 3)
