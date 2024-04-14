@@ -2,13 +2,17 @@
 
 This script uses a Support Vector Machine (SVM) to classify credit card approval decisions based on various applicant attributes.
 
+Report folder contains:
+- [Report](report/Credit_Card_Approvals_Report.pdf): Report of Analyzing Credit Card Approvals Dataset by SVM
+
 The output folder contains:
-- [Classification Report](output/classification_report.csv): Summary records of each run
-- [Model Performance](output/model_performance.csv): Summary best params, accuracy and confusion matrix of each run
-- [Predicted Results](output/y_red.csv): Show approval status of the dataset
-- [Train Set](output/train_set.csv): Training set after preprocessing
-- [Test Set](output/test_set.csv): Test set after preprocessing
-- [Cleaned Data](output/test_set.csv): Cleaned data by prepocess_raw_data.ipynb
+- [y_pred (Pulsar Data)](output/y_pred.csv): Predicted results of Pulsar dataset from practice session.
+- [Classification Report](output/classification_report.csv): Summary records of each run.
+- [Model Performance](output/model_performance.csv): Summary best params, accuracy and confusion matrix of each run.
+- [y_pred (Credit Card Approvals Data)](output/y_red.csv): Show approval status of the dataset.
+- [Train Set](output/train_set.csv): Training set after preprocessing.
+- [Test Set](output/test_set.csv): Test set after preprocessing.
+- [Cleaned Data](output/test_set.csv): Cleaned data by prepocess_raw_data.ipynb.
 
 
 ## Environment
