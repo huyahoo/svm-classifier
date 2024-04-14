@@ -1,4 +1,5 @@
 import os
+import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -116,6 +117,9 @@ class Preprocessor():
         """
         le = LabelEncoder()
         for col in data.columns:
+            if col == 'Approved':
+                data.loc[:, col] = data.loc[:, col].map({'-': 0, '+': 1})
+            
             if data[col].dtypes=='object':
                 data.loc[:, col] = le.fit_transform(data.loc[:, col])
         return data
@@ -180,13 +184,16 @@ class Preprocessor():
         
         df.loc[missing_data.index, miss_val_feature] = predicted_age
         
-        nan_count = df[miss_val_feature].isna().sum()
+        # nan_count = df[miss_val_feature].isna().sum()
         # print(f"Number of NaN values in the {miss_val_feature} column after filling:", nan_count)
 
         df[miss_val_feature] = df[miss_val_feature].astype(float)
         
         # print("Intercept:", model.intercept_)
         # print(f"Coefficient for {considered_feature}", model.coef_[0])
+        
+        for col in continuous_variables:
+            df[col] = np.log(df[col] + 1)
         
         return df
         
@@ -208,12 +215,19 @@ class Preprocessor():
             if df[col].isna().sum() > 0 and df[col].nunique() == 2:
                 df[col] = self.label_encode_categorical(df[[col]])
             elif df[col].isna().sum() > 0 and df[col].nunique() > 2:
+                if col == 'Married':
+                    df['Married'].replace('l', 'y', inplace=True)
+                elif col == 'BankCustomer':
+                    df['BankCustomer'].replace('gg', 'g', inplace=True)
+                elif col == 'Ethnicity':
+                    df.loc[df['Ethnicity'].isin(['j','z','dd','n','o']),'Ethnicity']='Other'
                 selected_columns = feature_names.tolist()[:-1] + [col]
                 missing_rows = df[selected_columns][df[selected_columns].isna().any(axis=1)]
                 non_missing_rows = df[selected_columns].dropna(subset=[col])
                 
                 le = LabelEncoder()
-                non_missing_rows[col] = le.fit_transform(non_missing_rows[col])
+                non_missing_rows[col] = abs(1 - le.fit_transform(non_missing_rows[col]))
+                print(non_missing_rows)
 
                 X_train = non_missing_rows.drop(columns=[col])
                 y_train = non_missing_rows[col]
@@ -266,7 +280,7 @@ class Preprocessor():
         return X_train, X_test
     
     @staticmethod
-    def save_results(results, output_dir='./data/', file_name='preprocessed_credit_card_approvals.csv'):
+    def save_results(results, output_dir='./data', file_name='preprocessed_credit_card_approvals.csv'):
         """
         This function saves the preprocessed DataFrame to a CSV file.
 
@@ -285,15 +299,16 @@ def run():
     
     preprocessor = Preprocessor()
     
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, header=None)
     df = preprocessor.rename_columns(df, ['Gender', 'Age', 'Debt', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'YearsEmployed', 'PriorDefault', 'Employed', 'CreditScore', 'DriversLicense', 'Citizen', 'ZipCode', 'Income', 'Approved'])
+    df.drop('ZipCode', axis=1, inplace=True)
     
     df = preprocessor.replace_missing_values(df)
     
     continuous_variables = ['Age', 'Debt', 'YearsEmployed', 'CreditScore', 'Income']
     df = preprocessor.handle_continuous_values(df, continuous_variables)
     
-    categorical_variables = ['Gender', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'PriorDefault', 'Employed', 'DriversLicense', 'Citizen', 'ZipCode', 'Approved']
+    categorical_variables = ['Gender', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'PriorDefault', 'Employed', 'DriversLicense', 'Citizen', 'Approved']
     mv = preprocessor.calculate_missing_values(df[categorical_variables])
     no_missing_data = mv[mv['NumberMissing'] == 0]
     feature_names = no_missing_data['Feature'].values
@@ -303,9 +318,21 @@ def run():
     df.update(cleaned_df)
 
     df = preprocessor.handle_categorical_variables(df, categorical_variables, feature_names)
-    print(df)
     
     preprocessor.save_results(df)
         
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Preprocess')
+    parser.add_argument('--data', type=str, default='./data/raw_credit_card_approvals.csv',
+                        help='Path to the dataset.')
+    parser.add_argument('--output', type=str, default='./output',
+                        help='Path to the output directory.')
+    parser.add_argument('--target', type=str, default='Approved',
+                        help='Target value to classify.')
+    parser.add_argument('--test_size', type=float, default=0.25,
+                        help='Size of the test set.')
+    parser.add_argument('--scaler', type=str, default='standard',
+                        help='Scaler for the features. Options: "standard", "maxmin", "robust".')
+    args = parser.parse_args()
+    
     run()
