@@ -21,6 +21,7 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
 
 from log import Logger
+from preprocessing import Preprocessor
 
 class SVMClassifier:
     def __init__(self, args):
@@ -28,7 +29,7 @@ class SVMClassifier:
         
         self.data_path = args.data
         self.output_dir = args.output
-        self.target_value = args.target
+        self.target_feature = args.target
         self.test_size = args.test_size
         self.scaler_type = args.scaler
         self.data = pd.read_csv(self.data_path)
@@ -83,9 +84,9 @@ class SVMClassifier:
             GridSearchCV: The GridSearchCV object after fitting. This object can be used to access the best parameters found.
         """
         param_grid = {
-            'C': np.linspace(2 ** -5, 2 ** 11, 32),
+            'C': np.linspace(2 ** -5, 2 ** 15, 4),
             'kernel': ['rbf'],
-            'gamma': np.linspace(2 ** -15, 2 ** -5, 32)
+            'gamma': np.linspace(2 ** -15, 2 ** 3, 4)
         }
         model_clf = svm.SVC()
         grid = GridSearchCV(model_clf, param_grid, refit = True, verbose = 3)
@@ -109,8 +110,8 @@ class SVMClassifier:
         imp = SimpleImputer(missing_values=np.nan, strategy='mean')
         data = pd.DataFrame(imp.fit_transform(data), columns = data.columns)
         
-        X = data.drop(self.target_value, axis=1)
-        y = data[self.target_value]
+        X = data.drop(self.target_feature, axis=1)
+        y = data[self.target_feature]
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=42)
         
@@ -186,8 +187,8 @@ class SVMClassifier:
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
             
-        pred_results = pd.DataFrame(pred_results, columns=[self.target_value])
-        results = pd.concat([pd.DataFrame(self.data.drop(self.target_value, axis=1), columns=self.data.columns[:-1]), pred_results], axis=1)
+        pred_results = pd.DataFrame(pred_results, columns=[self.target_feature])
+        results = pd.concat([pd.DataFrame(self.data.drop(self.target_feature, axis=1), columns=self.data.columns[:-1]), pred_results], axis=1)
         
         results.to_csv(os.path.join(self.output_dir, 'results.csv'), index=False)
 
