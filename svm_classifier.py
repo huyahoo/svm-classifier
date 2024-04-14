@@ -21,21 +21,22 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
 
 from log import Logger
+from preprocessing import Preprocessor
 
 class SVMClassifier:
     def __init__(self, args):
         super(SVMClassifier, self).__init__()
         
         self.data_path = args.data
+        self.preprocess = args.preprocess
         self.output_dir = args.output
-        self.target_value = args.target
+        self.target_feature = args.target
         self.test_size = args.test_size
         self.scaler_type = args.scaler
-        self.data = pd.read_csv(self.data_path)
         self.scaler = self.init_scaler(self.scaler_type)
-        self.X_train, self.X_test, self.y_train, self.y_test = self.preprocessing_data()
         
         self.logger = Logger(self.output_dir)
+        self.preprocessor = Preprocessor()
 
     @staticmethod
     def label_encode_categorical(data):
@@ -94,48 +95,94 @@ class SVMClassifier:
             GridSearchCV: The GridSearchCV object after fitting. This object can be used to access the best parameters found.
         """
         param_grid = {
-            'C': np.linspace(2 ** -5, 2 ** 11, 32),
+            'C': np.linspace(2 ** -5, 2 ** 11, 2),
             'kernel': ['rbf'],
-            'gamma': np.linspace(2 ** -15, 2 ** -5, 32)
+            'gamma': np.linspace(2 ** -15, 2 ** -5, 2)
         }
         model_clf = svm.SVC()
         grid = GridSearchCV(model_clf, param_grid, refit = True, verbose = 3)
         return grid
     
-    def preprocessing_data(self):
+    def preprocess_credit_card_approvals_dataset(self, data):
+        """
+        This function preprocesses the credit card approvals dataset. It performs several steps:
+        
+        1. Renames the columns of the dataset.
+        2. Drops the 'ZipCode' column.
+        3. Replaces missing values in the dataset.
+        4. Handles continuous variables by applying appropriate transformations.
+        5. Calculates missing values for categorical variables and selects features with no missing values.
+        6. Label encodes the categorical variables.
+        7. Handles categorical variables by applying appropriate transformations.
+        8. Saves the preprocessed data to a CSV file.
+
+        Args:
+            data (pandas.DataFrame): The DataFrame to be preprocessed.
+
+        Returns:
+            pandas.DataFrame: The preprocessed DataFrame.
+        """
+        data = self.preprocessor.rename_columns(data, ['Gender', 'Age', 'Debt', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'YearsEmployed', 'PriorDefault', 'Employed', 'CreditScore', 'DriversLicense', 'Citizen', 'ZipCode', 'Income', 'Approved'])
+        data.drop('ZipCode', axis=1, inplace=True)
+        
+        data = self.preprocessor.replace_missing_values(data)
+        
+        continuous_variables = ['Age', 'Debt', 'YearsEmployed', 'CreditScore', 'Income']
+        data = self.preprocessor.handle_continuous_values(data, continuous_variables)
+        
+        categorical_variables = ['Gender', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'PriorDefault', 'Employed', 'DriversLicense', 'Citizen', 'Approved']
+        mv = self.preprocessor.calculate_missing_values(data[categorical_variables])
+        no_missing_data = mv[mv['NumberMissing'] == 0]
+        feature_names = no_missing_data['Feature'].values
+
+        cleaned_df = data[feature_names]
+        cleaned_df = self.preprocessor.label_encode_categorical(cleaned_df)
+        data.update(cleaned_df)
+
+        data = self.preprocessor.handle_categorical_variables(data, categorical_variables, feature_names)
+        
+        self.preprocessor.save_to_csv(data)
+        
+        return data
+    
+    def prepare_data_train(self, data):
         """
         Pre-processes the data by removing duplicates, encoding categorical variables, handling missing values, 
         splitting the data into training and test sets, and scaling the features.
+        
+        Args:
+            data (pd.DataFrame): The data to be preprocessed.
 
         Returns:
             tuple: A tuple containing the training and test sets for the features (X) and the target variable (y).
         """
         # Remove duplicates
-        data = self.data.drop_duplicates()
+        data = data.drop_duplicates()
         
         # Convert categorical data into numerical form
-        data, mappings = self.label_encode_categorical(data)
 
-        X = data.drop(self.target_value, axis=1)
-        y = data[self.target_value]
+        data, mappings = self.label_encode_categorical(data)
+        
+        X = data.drop(self.target_feature, axis=1)
+        y = data[self.target_feature]
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=42)
 
         # Save train set
         train_set = np.hstack([X_train, y_train.to_numpy().reshape(-1, 1)])
-        train_data = pd.DataFrame(train_set, columns=self.data.columns)
+        train_data = pd.DataFrame(train_set, columns=data.columns)
         train_data = self.label_decode_numerical(train_data, mappings)
         train_data.to_csv(os.path.join(self.output_dir, 'train_set.csv'), index=False)
 
         # Save test set
         test_set = np.hstack([X_test, y_test.to_numpy().reshape(-1, 1)])
-        test_data = pd.DataFrame(test_set, columns=self.data.columns)
+        test_data = pd.DataFrame(test_set, columns=data.columns)
         test_data = self.label_decode_numerical(test_data, mappings)
         test_data.to_csv(os.path.join(self.output_dir, 'test_set.csv'), index=False)
 
         # Handle missing values
         imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-        imp.fit(data.drop(self.target_value, axis=1).to_numpy())
+        imp.fit(data.drop(self.target_feature, axis=1).to_numpy())
         # data = pd.DataFrame(imp.fit_transform(data), columns = data.columns)
 
         # Normalize the data
@@ -146,92 +193,105 @@ class SVMClassifier:
         
         return X_train, X_test, y_train, y_test
 
-    def train(self, model):
+    def train(self, model, X_train, y_train):
         """
         Trains the provided model using the training data.
 
         Args:
             model (sklearn estimator): The machine learning model to be trained.
+            X_train (pd.DataFrame): The features of the training set.
+            y_train (pd.Series): The target variable of the training set.
 
         Returns:
             sklearn estimator: The trained model.
         """
-        model.fit(self.X_train, self.y_train)
+        model.fit(X_train, y_train)
         return model
 
-    def evaluate(self, model, y_pred):
+    def evaluate(self, model, y_test, y_pred):
         """
         Evaluates the provided model by calculating its accuracy on the test set.
 
         Args:
             model (sklearn estimator): The machine learning model to be evaluated.
+            y_test (pd.Series): The target variable of the test set.
+            y_pred (np.array): The predictions made by the model on the test set.
 
         Returns:
             float: The accuracy of the model on the test set.
         """
         print("Best parameters found: ", model.best_params_, "\n")
         
-        accuracy = accuracy_score(self.y_test, y_pred)
+        accuracy = accuracy_score(y_test, y_pred)
         print(f"Accuracy: {accuracy}", "\n")
         
-        clf_report = classification_report(self.y_test, y_pred, output_dict=True)
+        clf_report = classification_report(y_test, y_pred, output_dict=True)
         clf_report_df = pd.DataFrame(clf_report).transpose()
         print(f"Classification report: \n{clf_report_df}", "\n")
         
-        conf_mat = confusion_matrix(self.y_test, y_pred,)
+        conf_mat = confusion_matrix(y_test, y_pred,)
         tn, fp, fn, tp = conf_mat.ravel()
         
         print("Confusion matrix:")
-        print(f"| TN | FP |   | {tn:2d} | {fp:2d} |")
+        print(f"| TP | FP |   | {tp:2d} | {fp:2d} |")
         print(f"|----|----| = |----|----|")
-        print(f"| FN | TP |   | {fn:2d} | {tp:2d} |")
+        print(f"| FN | TN |   | {fn:2d} | {tn:2d} |")
         
         self.logger.log(model.best_params_, accuracy, conf_mat, clf_report_df)
         
         return accuracy, clf_report, conf_mat
 
-    def predict(self, model):
+    def predict(self, model, test_data):
         """
         Makes predictions on the test set using the provided model.
 
         Args:
             model (sklearn estimator): The machine learning model to make predictions with.
+            test_data (pd.DataFrame): The test set to make predictions on.
 
         Returns:
             np.array: The predictions made by the model on the test set.
         """
-        return model.predict(self.X_test)
+        return model.predict(test_data)
 
     def save_results(self, pred_results):
         """
         Saves the provided results to a CSV file in the specified output directory.
 
         Args:
-            results (pd.DataFrame): The results to be saved. This should be a DataFrame where each row represents a result.
+            pred_results (np.array): The predictions made by the model. 
         """
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
 
         # Save predicts
-        y_pred = pd.DataFrame(pred_results, columns=[self.target_value])
+        y_pred = pd.DataFrame(pred_results, columns=[self.target_feature])
         y_pred.to_csv(os.path.join(self.output_dir, 'y_pred.csv'), index=False)
 
     def run(self):
+        data = pd.read_csv(self.data_path)
+        
+        if self.preprocess:
+            data = self.preprocess_credit_card_approvals_dataset(data)
+        X_train, X_test, y_train, y_test = self.prepare_data_train(data)
+        
         grid = self.tune_hyperparameter()
-        model = self.train(grid)
+        model = self.train(grid, X_train, y_train)
         
         best_model = model.best_estimator_
-        best_model = self.train(best_model)
+        best_model = self.train(best_model, X_train, y_train)
         
-        y_pred = self.predict(best_model)
+        y_pred = self.predict(best_model, X_test)
         
-        self.evaluate(model, y_pred)
+        self.evaluate(model, y_test, y_pred)
         
         self.save_results(y_pred)
         
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Classify by SVM')
+    parser.add_argument('--preprocess', action='store_true', 
+                        help='Specify to preprocess the dataset.')
     parser.add_argument('--data', type=str, default='./data/credit_card_approvals.csv',
                         help='Path to the dataset.')
     parser.add_argument('--output', type=str, default='./output',
