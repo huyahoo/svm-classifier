@@ -97,5 +97,5 @@ This Python script provides a set of functions to evaluate the fairness of a mac
 ### Usage
 
 ```bash
-python3 fairness.py
+python3 fairness.py --feature Ethnicity
 ```
