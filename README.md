@@ -12,7 +12,7 @@ The output folder contains:
 - [y_pred (Credit Card Approvals Data)](output/y_red.csv): Show approval status of the dataset.
 - [Train Set](output/train_set.csv): Training set after preprocessing.
 - [Test Set](output/test_set.csv): Test set after preprocessing.
-- [Cleaned Data](output/test_set.csv): Cleaned data by prepocess_raw_data.ipynb.
+- [Cleaned Data](output/clean_data_from_notebook.csv): Cleaned data by prepocess_raw_data.ipynb.
 
 
 ## Environment
