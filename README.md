@@ -5,7 +5,7 @@ This script uses a Support Vector Machine (SVM) to classify credit card approval
 The output folder contains:
 - [Classification Report](output/classification_report.csv): Summary records of each run
 - [Model Performance](output/model_performance.csv): Summary best params, accuracy and confusion matrix of each run
-- [Predicted Results](output/results.csv): Show all information with Approval status of the dataset
+- [Predicted Results](output/y_red.csv): Show approval status of the dataset
 
 ## Environment
 - Python 3.9.6
