@@ -23,7 +23,7 @@ Install require library:
 pip3 install -r requirements.txt
 ```
 
-Quick run:
+Quick run by shell script [Click to view](classify.sh)
 ```bash
 ./classify.sh
 
@@ -43,7 +43,7 @@ You can run this notebook in Google Colab by clicking the button below:
 - Credit Card Approvals
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/19tSCIFZSYzyve8tXRX6XcPqsPzDtIpoU/view?usp=sharing)
 
-## SVM Classifier
+## [SVM Classifier](svm_classifier.py)
 
 ### Arguments
 
@@ -69,7 +69,7 @@ or
 python3 svm_classifier.py --preprocess --data './data/raw_credit_card_approvals.csv' --output './output' --target 'Approved' --test_size 0.25 --scaler 'standard'
 ```
 
-## Preprocessing
+## [Preprocessing](preproccessing.py)
 This script preprocesses the raw credit card approvals dataset to prepare it for the SVM classifier.
 This can be done individually as below and the output of preprocessed data is saved as `preprocessed_credit_card_approvals.csv` inside folder `data` as default.
 
@@ -97,7 +97,7 @@ or
 python3 preprocess.py --data './data/raw_credit_card_approvals.csv' --output './data' --target 'Approved' --test_size 0.25 --scaler 'standard'
 ```
 
-## Fairness Evaluation
+## [Fairness Evaluation](fairness.py)
 
 This Python script provides a set of functions to evaluate the fairness of a machine learning model's predictions. It uses various statistical tests and metrics to assess the model's performance across different groups defined by a categorical feature.
 
