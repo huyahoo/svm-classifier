@@ -34,6 +34,9 @@ chmod +x classify.sh
 ## Run with Google Colab
 You can run this notebook in Google Colab by clicking the button below:
 
+- Practical Session
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/19tSCIFZSYzyve8tXRX6XcPqsPzDtIpoU/view?usp=sharing)
+
 - Preprocessing
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1vvBdxLtQdWCcyZddEPGAvbH1OgIX3aDp/view?usp=sharing)
 
