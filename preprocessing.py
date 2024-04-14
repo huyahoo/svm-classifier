@@ -43,6 +43,7 @@ class Preprocess():
 
     def handle_categorical_variables(self):
         # Add your code here to handle categorical variables
+        pass
 
     def save_to_csv(self, file_path):
         self.df.to_csv(file_path, index=False)

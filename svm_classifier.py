@@ -50,10 +50,21 @@ class SVMClassifier:
             pd.DataFrame: The data with categorical variables encoded as numerical values.
         """
         le = LabelEncoder()
+        mappings = {}
         
         for col in data.columns:
             if data[col].dtypes=='object':
                 data[col]=le.fit_transform(data[col])
+                mappings[col] = le.classes_
+        return data, mappings
+    
+    @staticmethod
+    def label_decode_numerical(data, mappings):
+        le = LabelEncoder()
+        for col, classes in mappings.items():
+            le.classes_ = classes
+            data[col] = le.inverse_transform(data[col].astype(int))
+
         return data
 
     @staticmethod
@@ -103,19 +114,34 @@ class SVMClassifier:
         data = self.data.drop_duplicates()
         
         # Convert categorical data into numerical form
-        data = self.label_encode_categorical(data)
-        
-        # Handle missing values
-        imp = SimpleImputer(missing_values=np.nan, strategy='mean')
-        data = pd.DataFrame(imp.fit_transform(data), columns = data.columns)
-        
+        data, mappings = self.label_encode_categorical(data)
+
         X = data.drop(self.target_value, axis=1)
         y = data[self.target_value]
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size, random_state=42)
-        
+
+        # Save train set
+        train_set = np.hstack([X_train, y_train.to_numpy().reshape(-1, 1)])
+        train_data = pd.DataFrame(train_set, columns=self.data.columns)
+        train_data = self.label_decode_numerical(train_data, mappings)
+        train_data.to_csv(os.path.join(self.output_dir, 'train_set.csv'), index=False)
+
+        # Save test set
+        test_set = np.hstack([X_test, y_test.to_numpy().reshape(-1, 1)])
+        test_data = pd.DataFrame(test_set, columns=self.data.columns)
+        test_data = self.label_decode_numerical(test_data, mappings)
+        test_data.to_csv(os.path.join(self.output_dir, 'test_set.csv'), index=False)
+
+        # Handle missing values
+        imp = SimpleImputer(missing_values=np.nan, strategy='mean')
+        imp.fit(data.drop(self.target_value, axis=1).to_numpy())
+        # data = pd.DataFrame(imp.fit_transform(data), columns = data.columns)
+
         # Normalize the data
+        X_train = imp.transform(X_train)
         X_train = self.scaler.fit_transform(X_train)
+        X_test = imp.transform(X_test)
         X_test = self.scaler.transform(X_test)
         
         return X_train, X_test, y_train, y_test
@@ -185,11 +211,10 @@ class SVMClassifier:
         """
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
-            
-        pred_results = pd.DataFrame(pred_results, columns=[self.target_value])
-        results = pd.concat([pd.DataFrame(self.data.drop(self.target_value, axis=1), columns=self.data.columns[:-1]), pred_results], axis=1)
-        
-        results.to_csv(os.path.join(self.output_dir, 'results.csv'), index=False)
+
+        # Save predicts
+        y_pred = pd.DataFrame(pred_results, columns=[self.target_value])
+        y_pred.to_csv(os.path.join(self.output_dir, 'y_pred.csv'), index=False)
 
     def run(self):
         grid = self.tune_hyperparameter()
