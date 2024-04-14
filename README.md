@@ -4,6 +4,10 @@ This script uses a Support Vector Machine (SVM) to classify credit card approval
 
 ## Run with Google Colab
 You can run this notebook in Google Colab by clicking the button below:
+
+- Preprocessing
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/14psva_4VoKTRoI5dSur4BYwlbiToNfOx?usp=sharing)
+
 - Credit Card Approvals
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/14psva_4VoKTRoI5dSur4BYwlbiToNfOx?usp=sharing)
 
