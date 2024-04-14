@@ -227,7 +227,6 @@ class Preprocessor():
                 
                 le = LabelEncoder()
                 non_missing_rows[col] = abs(1 - le.fit_transform(non_missing_rows[col]))
-                print(non_missing_rows)
 
                 X_train = non_missing_rows.drop(columns=[col])
                 y_train = non_missing_rows[col]
@@ -240,7 +239,7 @@ class Preprocessor():
         return df
     
     @staticmethod
-    def split_data(data, target_feature='Approved' , test_size=0.2):
+    def split_data(data, target_feature='Approved', test_size=0.25):
         """
         This function splits the input DataFrame into training and testing sets. 
         The target feature is removed from the DataFrame to form the feature set. 
@@ -280,19 +279,19 @@ class Preprocessor():
         return X_train, X_test
     
     @staticmethod
-    def save_results(results, output_dir='./data', file_name='preprocessed_credit_card_approvals.csv'):
+    def save_to_csv(data, output_dir='./data', file_name='preprocessed_credit_card_approvals.csv'):
         """
         This function saves the preprocessed DataFrame to a CSV file.
 
         Args:
-            results (pandas.DataFrame): The DataFrame to be saved.
+            data (pandas.DataFrame): The DataFrame to be saved.
             output_dir (str, optional): The directory where the file will be saved. Defaults to './data/'.
             file_name (str, optional): The name of the file. Defaults to 'preprocessed_credit_card_approvals.csv'.
         """
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
-        results.to_csv(os.path.join(output_dir, file_name), index=False)
+        data.to_csv(os.path.join(output_dir, file_name), index=False)
 
 def run():
     file_path = './data/raw_credit_card_approvals.csv'
@@ -319,7 +318,7 @@ def run():
 
     df = preprocessor.handle_categorical_variables(df, categorical_variables, feature_names)
     
-    preprocessor.save_results(df)
+    preprocessor.save_to_csv(df)
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocess')
@@ -335,4 +334,3 @@ if __name__ == '__main__':
                         help='Scaler for the features. Options: "standard", "maxmin", "robust".')
     args = parser.parse_args()
     
-    run()
