@@ -6,6 +6,10 @@ The output folder contains:
 - [Classification Report](output/classification_report.csv): Summary records of each run
 - [Model Performance](output/model_performance.csv): Summary best params, accuracy and confusion matrix of each run
 - [Predicted Results](output/y_red.csv): Show approval status of the dataset
+- [Train Set](output/train_set.csv): Training set after preprocessing
+- [Test Set](output/test_set.csv): Test set after preprocessing
+- [Cleaned Data](output/test_set.csv): Cleaned data by prepocess_raw_data.ipynb
+
 
 ## Environment
 - Python 3.9.6
@@ -84,4 +88,14 @@ python3 preprocess.py
 or
 ```bash
 python3 preprocess.py --data './data/raw_credit_card_approvals.csv' --output './data' --target 'Approved' --test_size 0.25 --scaler 'standard'
+```
+
+## Fairness Evaluation
+
+This Python script provides a set of functions to evaluate the fairness of a machine learning model's predictions. It uses various statistical tests and metrics to assess the model's performance across different groups defined by a categorical feature.
+
+### Usage
+
+```bash
+python3 fairness.py
 ```
