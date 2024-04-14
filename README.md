@@ -27,10 +27,10 @@ chmod +x classify.sh
 You can run this notebook in Google Colab by clicking the button below:
 
 - Preprocessing
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/14psva_4VoKTRoI5dSur4BYwlbiToNfOx?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1fa0PtSqRdOqbzU84g11tMMDJrrgdnqBU/view?usp=sharing)
 
 - Credit Card Approvals
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/14psva_4VoKTRoI5dSur4BYwlbiToNfOx?usp=sharing)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://drive.google.com/file/d/1hL_26yoi0z7T69ANbRmj3NfW9YIU2q60/view?usp=sharing)
 
 ## SVM Classifier
 
