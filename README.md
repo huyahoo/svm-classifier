@@ -23,7 +23,7 @@ Install require library:
 pip3 install -r requirements.txt
 ```
 
-Quick run by shell script [Click to view](classify.sh)
+Quick run by shell script [classify.sh](classify.sh)
 ```bash
 ./classify.sh
 
