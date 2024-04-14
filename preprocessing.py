@@ -104,7 +104,7 @@ class Preprocessor():
         return scaler_map.get(scaler, StandardScaler())
     
     @staticmethod
-    def label_encode_categorical(data):
+    def label_encode_categorical(data, target_feature='Approved'):
         """
         Converts categorical data into numerical form using LabelEncoder. 
         This is necessary because machine learning algorithms typically work with numerical data.
@@ -117,7 +117,7 @@ class Preprocessor():
         """
         le = LabelEncoder()
         for col in data.columns:
-            if col == 'Approved':
+            if col == target_feature:
                 data.loc[:, col] = data.loc[:, col].map({'-': 0, '+': 1})
             
             if data[col].dtypes=='object':
@@ -206,7 +206,7 @@ class Preprocessor():
         Args:
             df (pandas.DataFrame): The DataFrame in which missing values are to be handled.
             categorical_variables (list): A list of column names representing the categorical variables.
-            feature_names (list): A list of all feature names in the DataFrame.
+            feature_names (list): A list of all non-missing data feature names in the DataFrame.
 
         Returns:
             pandas.DataFrame: The DataFrame with missing values in categorical variables handled.
@@ -293,13 +293,13 @@ class Preprocessor():
         
         data.to_csv(os.path.join(output_dir, file_name), index=False)
 
-def run():
-    file_path = './data/raw_credit_card_approvals.csv'
-    
+def run(args):    
     preprocessor = Preprocessor()
     
-    df = pd.read_csv(file_path, header=None)
-    df = preprocessor.rename_columns(df, ['Gender', 'Age', 'Debt', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'YearsEmployed', 'PriorDefault', 'Employed', 'CreditScore', 'DriversLicense', 'Citizen', 'ZipCode', 'Income', 'Approved'])
+    df = pd.read_csv(args.data, header=None)
+    
+    col_names = ['Gender', 'Age', 'Debt', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'YearsEmployed', 'PriorDefault', 'Employed', 'CreditScore', 'DriversLicense', 'Citizen', 'ZipCode', 'Income', 'Approved']
+    df = preprocessor.rename_columns(df, col_names)
     df.drop('ZipCode', axis=1, inplace=True)
     
     df = preprocessor.replace_missing_values(df)
@@ -310,21 +310,21 @@ def run():
     categorical_variables = ['Gender', 'Married', 'BankCustomer', 'Industry', 'Ethnicity', 'PriorDefault', 'Employed', 'DriversLicense', 'Citizen', 'Approved']
     mv = preprocessor.calculate_missing_values(df[categorical_variables])
     no_missing_data = mv[mv['NumberMissing'] == 0]
-    feature_names = no_missing_data['Feature'].values
+    no_missing_data_feature_names = no_missing_data['Feature'].values
 
-    cleaned_df = df[feature_names]
-    cleaned_df = preprocessor.label_encode_categorical(cleaned_df)
+    cleaned_df = df[no_missing_data_feature_names]
+    cleaned_df = preprocessor.label_encode_categorical(cleaned_df, args.target)
     df.update(cleaned_df)
 
-    df = preprocessor.handle_categorical_variables(df, categorical_variables, feature_names)
+    df = preprocessor.handle_categorical_variables(df, categorical_variables, no_missing_data_feature_names)
     
-    preprocessor.save_to_csv(df)
+    preprocessor.save_to_csv(df, args.output, 'preprocessed_credit_card_approvals.csv')
         
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Preprocess')
     parser.add_argument('--data', type=str, default='./data/raw_credit_card_approvals.csv',
                         help='Path to the dataset.')
-    parser.add_argument('--output', type=str, default='./output',
+    parser.add_argument('--output', type=str, default='./data',
                         help='Path to the output directory.')
     parser.add_argument('--target', type=str, default='Approved',
                         help='Target value to classify.')
@@ -333,4 +333,6 @@ if __name__ == '__main__':
     parser.add_argument('--scaler', type=str, default='standard',
                         help='Scaler for the features. Options: "standard", "maxmin", "robust".')
     args = parser.parse_args()
+    
+    run(args)
     

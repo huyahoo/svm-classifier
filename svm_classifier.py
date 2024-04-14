@@ -264,8 +264,8 @@ class SVMClassifier:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Classify by SVM')
     parser.add_argument('--preprocess', action='store_true', 
-                        help='Specify if the dataset whether it is preprocessed.')
-    parser.add_argument('--data', type=str, default='./data/preprocessed_credit_card_approvals.csv',
+                        help='Specify to preprocess the dataset.')
+    parser.add_argument('--data', type=str, default='./data/credit_card_approvals.csv',
                         help='Path to the dataset.')
     parser.add_argument('--output', type=str, default='./output',
                         help='Path to the output directory.')
